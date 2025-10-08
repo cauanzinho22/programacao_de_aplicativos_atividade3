@@ -1,0 +1,146 @@
+package cesar;
+
+import java.util.Scanner;
+
+public class Cesar {
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+
+        double nota;
+        do {
+            System.out.print("Digite uma nota (0 a 10): ");
+            nota = sc.nextDouble();
+            if (nota < 0 || nota > 10) {
+                System.out.println("Valor inválido! Tente novamente.");
+            }
+        } while (nota < 0 || nota > 10);
+        System.out.println("Nota válida: " + nota);
+
+
+        int numero;
+        int soma = 0, qtd = 0;
+        do {
+            System.out.print("Digite um número (0 encerra): ");
+            numero = sc.nextInt();
+            if (numero != 0) {
+                soma += numero;
+                qtd++;
+            }
+        } while (numero != 0);
+
+        if (qtd > 0) {
+            double media = (double) soma / qtd;
+            System.out.printf("Soma: %d | Quantidade: %d | Média: %.2f%n", soma, qtd, media);
+        } else {
+            System.out.println("Nenhum número válido foi digitado.");
+        }
+
+        int segredo = (int) (Math.random() * 100) + 1;
+        int palpite, tentativas = 0;
+        do {
+            System.out.print("Palpite: ");
+            palpite = sc.nextInt();
+            tentativas++;
+            if (palpite > segredo) {
+                System.out.println("Muito alto!");
+            } else if (palpite < segredo) {
+                System.out.println("Muito baixo!");
+            }
+        } while (palpite != segredo);
+        System.out.println("Acertou em " + tentativas + " tentativas!");
+
+        String repetir;
+        do {
+            int N;
+            do {
+                System.out.print("Digite N (>0): ");
+                N = sc.nextInt();
+                if (N <= 0) {
+                    System.out.println("Valor inválido. Tente novamente.");
+                }
+            } while (N <= 0);
+
+            for (int i = N; i >= 0; i--) {
+                System.out.print(i + " ");
+            }
+            System.out.println();
+
+            System.out.print("Repetir? (s/n): ");
+            repetir = sc.next();
+        } while (repetir.equalsIgnoreCase("s"));
+
+        final String SENHA_CORRETA = "senai123";
+        String senhaDigitada;
+        int tentativasRestantes = 3;
+
+        do {
+            System.out.print("Senha: ");
+            senhaDigitada = sc.next();
+            tentativasRestantes--;
+
+            if (senhaDigitada.equals(SENHA_CORRETA)) {
+                System.out.println("Acesso concedido.");
+                break;
+            } else if (tentativasRestantes > 0) {
+                System.out.println("Incorreta. Tentativas restantes: " + tentativasRestantes);
+            } else {
+                System.out.println("Conta bloqueada.");
+            }
+
+        } while (tentativasRestantes > 0 && !senhaDigitada.equals(SENHA_CORRETA));
+
+        System.out.print("Digite um número para ver a tabuada: ");
+        int numTabuada = sc.nextInt();
+
+        for (int i = 1; i <= 10; i++) {
+            System.out.printf("%d x %d = %d%n", numTabuada, i, numTabuada * i);
+        }
+
+        int N;
+        do {
+            System.out.print("Digite N (>0): ");
+            N = sc.nextInt();
+            if (N <= 0) {
+                System.out.println("Valor inválido. Tente novamente.");
+            }
+        } while (N <= 0);
+
+        int somaPares = 0, somaImpares = 0;
+        for (int i = 1; i <= N; i++) {
+            if (i % 2 == 0) {
+                somaPares += i;
+            } else {
+                somaImpares += i;
+            }
+        }
+        System.out.println("Soma dos pares: " + somaPares);
+        System.out.println("Soma dos ímpares: " + somaImpares);
+
+        do {
+            System.out.print("Digite N (>1): ");
+            N = sc.nextInt();
+            if (N <= 1) {
+                System.out.println("Valor inválido. Tente novamente.");
+            }
+        } while (N <= 1);
+
+        System.out.print("Números primos entre 1 e " + N + ": ");
+        for (int k = 2; k <= N; k++) {
+            boolean primo = true;
+            for (int i = 2; i <= Math.sqrt(k); i++) {
+                if (k % i == 0) {
+                    primo = false;
+                    break;
+                }
+            }
+            if (primo) {
+                System.out.print(k + " ");
+            }
+        }
+        System.out.println();
+
+        sc.close();
+    }
+}
