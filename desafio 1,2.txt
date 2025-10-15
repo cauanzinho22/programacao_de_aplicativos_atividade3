@@ -1,0 +1,224 @@
+import java.util.Scanner;
+
+public class ProjetoCaixaRapidoRefatorado {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        ContaBancaria conta = new ContaBancaria(100.0, 0.0);
+        ServicoCambio cambio = new ServicoCambio(5.32);
+        ExtratoBancario extrato = new ExtratoBancario(10);
+        SimuladorEmprestimo simulador = new SimuladorEmprestimo();
+
+        int opcao;
+        do {
+            System.out.println("\n--- Caixa Rápido ---");
+            System.out.println("1. Saldo");
+            System.out.println("2. Depósito");
+            System.out.println("3. Extrato");
+            System.out.println("4. Empréstimo");
+            System.out.println("5. Comprar Dólar");
+            System.out.println("0. Sair");
+            System.out.print("Escolha uma opção: ");
+            opcao = scanner.nextInt();
+
+            switch (opcao) {
+                case 1:
+                    System.out.println("Saldo em Reais: " + conta.getSaldoReais());
+                    System.out.println("Saldo em Dólares: " + conta.getSaldoDolares());
+                    break;
+
+                case 2:
+                    System.out.print("Digite o valor do depósito: ");
+                    double valorDeposito = scanner.nextDouble();
+                    conta.depositar(valorDeposito);
+                    extrato.registrar(new Movimentacao("DEPÓSITO (+)", valorDeposito));
+                    break;
+
+                case 3:
+                    if (extrato.vazio()) {
+                        System.out.println("Nenhum extrato.");
+                    } else {
+                        extrato.imprimir();
+                    }
+                    break;
+
+                case 4:
+                    System.out.print("Digite o valor do empréstimo: ");
+                    double emprestimo = scanner.nextDouble();
+                    System.out.print("Digite o número de parcelas: ");
+                    int parcelas = scanner.nextInt();
+                    if (simulador.parcelaValida(parcelas)) {
+                        double parcelaFinal = simulador.parcelaFinal(emprestimo, parcelas);
+                        double totalComJuros = simulador.totalComJuros(emprestimo, parcelas);
+                        System.out.println("Parcela final: R$ " + parcelaFinal);
+                        System.out.println("Total com juros: R$ " + totalComJuros);
+                    } else {
+                        System.out.println("Número de parcelas inválido.");
+                    }
+                    break;
+
+                case 5:
+                    System.out.println("Saldo disponível em Reais: R$ " + conta.getSaldoReais());
+                    System.out.print("Quantos dólares deseja comprar? ");
+                    double qtdUsd = scanner.nextDouble();
+                    double custo = cambio.custoEmReais(qtdUsd);
+                    if (conta.getSaldoReais() < custo) {
+                        System.out.println("Saldo insuficiente.");
+                        break;
+                    }
+                    System.out.print("Confirmar compra (S/N)? ");
+                    String confirmar = scanner.next();
+                    if (confirmar.equalsIgnoreCase("S")) {
+                        conta.comprarDolar(qtdUsd, custo);
+                        extrato.registrar(new Movimentacao("COMPRA DE DÓLARES (-)", custo));
+                        extrato.registrar(new Movimentacao("DEPÓSITO EM DÓLAR (+)", qtdUsd));
+                    } else {
+                        System.out.println("Compra cancelada.");
+                    }
+                    break;
+
+                case 0:
+                    System.out.print("Tem certeza que deseja sair? (s/n): ");
+                    String sair = scanner.next();
+                    if (sair.equalsIgnoreCase("s")) {
+                        System.out.println("Até logo!");
+                    } else {
+                        opcao = -1;
+                    }
+                    break;
+
+                default:
+                    System.out.println("Opção inválida.");
+            }
+        } while (opcao != 0);
+
+        scanner.close();
+    }
+}
+
+class ContaBancaria {
+    private double saldoReais;
+    private double saldoDolares;
+
+    public ContaBancaria(double saldoReais, double saldoDolares) {
+        this.saldoReais = saldoReais;
+        this.saldoDolares = saldoDolares;
+    }
+
+    public double getSaldoReais() {
+        return saldoReais;
+    }
+
+    public double getSaldoDolares() {
+        return saldoDolares;
+    }
+
+    public void depositar(double valor) {
+        saldoReais += valor;
+    }
+
+    public void comprarDolar(double qtdUsd, double custoEmReais) {
+        saldoReais -= custoEmReais;
+        saldoDolares += qtdUsd;
+    }
+}
+
+class ServicoCambio {
+    private double cotacao;
+
+    public ServicoCambio(double cotacao) {
+        this.cotacao = cotacao;
+    }
+
+    public double custoEmReais(double qtdUsd) {
+        return qtdUsd * cotacao;
+    }
+}
+
+class Movimentacao {
+    private String texto;
+    private double valor;
+
+    public Movimentacao(String texto, double valor) {
+        this.texto = texto;
+        this.valor = valor;
+    }
+
+    public String getTexto() {
+        return texto;
+    }
+
+    public double getValor() {
+        return valor;
+    }
+}
+
+class ExtratoBancario {
+    private int capacidade;
+    private int prox;
+    private int count;
+    private Movimentacao[] itens;
+
+    public ExtratoBancario(int capacidade) {
+        this.capacidade = capacidade;
+        this.itens = new Movimentacao[capacidade];
+        this.prox = 0;
+        this.count = 0;
+    }
+
+    public void registrar(Movimentacao m) {
+        if (count < capacidade) {
+            itens[prox] = m;
+            prox = (prox + 1) % capacidade;
+            count++;
+        } else {
+            itens[prox] = m;
+            prox = (prox + 1) % capacidade;
+        }
+    }
+
+    public boolean vazio() {
+        return count == 0;
+    }
+
+    public void imprimir() {
+        int i = prox - 1;
+        if (i < 0) {
+            i = capacidade - 1;
+        }
+
+        for (int j = 0; j < count; j++) {
+            if (itens[i].getTexto().startsWith("DEPÓSITO EM DÓLAR")) {
+                System.out.println(itens[i].getTexto() + " + US$ " + itens[i].getValor());
+            } else if (itens[i].getTexto().startsWith("COMPRA DE DÓLARES")) {
+                System.out.println(itens[i].getTexto() + " - R$ " + Math.abs(itens[i].getValor()));
+            } else {
+                System.out.println(itens[i].getTexto() + " R$ " + itens[i].getValor());
+            }
+
+            i = (i - 1 + capacidade) % capacidade;
+        }
+    }
+}
+
+class SimuladorEmprestimo {
+    private final double jurosPorParcela = 0.02;
+    private final int[] permitidas = {6, 12, 18, 24, 30, 36, 40, 48, 56, 60, 72};
+
+    public boolean parcelaValida(int p) {
+        for (int parcela : permitidas) {
+            if (parcela == p) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public double parcelaFinal(double emprestimo, int qtd) {
+        return (emprestimo / qtd) + (emprestimo * jurosPorParcela);
+    }
+
+    public double totalComJuros(double emprestimo, int qtd) {
+        return emprestimo + (emprestimo * jurosPorParcela * qtd);
+    }
+}
